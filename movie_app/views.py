@@ -1,3 +1,6 @@
+from itertools import count
+
+from django.db.models import Avg
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -9,7 +12,8 @@ from . import serializer
 def director_list_api_view(request):
     directors = models.Director.objects.all()
     data = serializer.DirectorSerializer(directors, many=True).data
-    return Response(data=data)
+    return Response(data)
+
 
 @api_view(['GET'])
 def director_detail_api_view(request, id):
@@ -20,11 +24,13 @@ def director_detail_api_view(request, id):
     data = serializer.DirectorDetailSerializer(director).data
     return Response(data=data, status=status.HTTP_200_OK)
 
+
 @api_view(['GET'])
 def movie_list_api_view(request):
     movies = models.Movie.objects.all()
     data = serializer.MovieSerializer(movies, many=True).data
-    return Response(data=data , status=status.HTTP_200_OK)
+    return Response(data=data, status=status.HTTP_200_OK)
+
 
 @api_view(['GET'])
 def movie_detail_api_view(request, id):
@@ -35,11 +41,13 @@ def movie_detail_api_view(request, id):
     data = serializer.MovieDetailSerializer(movie).data
     return Response(data=data, status=status.HTTP_200_OK)
 
+
 @api_view(['GET'])
 def review_list_api_view(request):
     review = models.Review.objects.all()
     data = serializer.ReviewSerializer(review, many=True).data
-    return Response(data=data , status=status.HTTP_200_OK)
+    return Response(data=data, status=status.HTTP_200_OK)
+
 
 @api_view(['GET'])
 def review_detail_api_view(request, id):
@@ -50,3 +58,9 @@ def review_detail_api_view(request, id):
     data = serializer.ReviewDetailSerializer(review).data
     return Response(data=data, status=status.HTTP_200_OK)
 
+
+@api_view(['GET'])
+def movies_review_list_api_view(request):
+    movies = models.Movie.objects.all().annotate(average_rating=Avg('reviews__stars'))
+    data = serializer.MovieSerializer(movies, many=True).data
+    return Response(data, status=status.HTTP_200_OK)
