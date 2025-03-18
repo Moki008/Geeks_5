@@ -22,7 +22,7 @@ class MovieSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Movie
-        fields = ['title', 'director', 'reviews', 'average_rating']
+        fields = ['title', 'director', 'average_rating']
         depth = 1
 
 
@@ -31,7 +31,7 @@ class MovieDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Movie
-        fields = ['id', 'title', 'duration', 'director', 'reviews']
+        fields = ['id', 'title', 'duration', 'director']
         depth = 1
 
 
