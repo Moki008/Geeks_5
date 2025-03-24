@@ -3,21 +3,25 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from movie_app import models
-from . import serializer
+from . import serializers
 
 
 @api_view(['GET', 'POST'])
 def director_list_create_api_view(request):
     if request.method == 'GET':
         directors = models.Director.objects.all()
-        data = serializer.DirectorSerializer(directors, many=True).data
+        data = serializers.DirectorSerializer(directors, many=True).data
         return Response(data)
     elif request.method == 'POST':
-        name = request.data.get('name')
+        serializer = serializers.DirectorValidateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        name = serializer.validated_data.get('name')
         directors = models.Director.objects.create(
             name=name
         )
-        return Response(data=serializer.DirectorDetailSerializer(directors).data,
+        return Response(data=serializers.DirectorDetailSerializer(directors).data,
                         status=status.HTTP_201_CREATED)
 
 
@@ -28,12 +32,15 @@ def director_detail_api_view(request, id):
     except models.Director.DoesNotExist:
         return Response(data={'error': 'Product not found!'}, status=status.HTTP_404_NOT_FOUND)
     if request.method == 'GET':
-        data = serializer.DirectorDetailSerializer(director).data
+        data = serializers.DirectorDetailSerializer(director).data
         return Response(data=data, status=status.HTTP_200_OK)
     elif request.method == 'PUT':
-        director.name = request.data.get('name')
+        serializer = serializers.DirectorSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        director.name = serializer.validated_data.get('name')
         director.save()
-        return Response(data=serializer.DirectorDetailSerializer(director).data,
+        return Response(data=serializers.DirectorDetailSerializer(director).data,
                         status=status.HTTP_201_CREATED)
     elif request.method == 'DELETE':
         director.delete()
@@ -43,13 +50,16 @@ def director_detail_api_view(request, id):
 def movie_list_create_api_view(request):
     if request.method == 'GET':
         movies = models.Movie.objects.all()
-        data = serializer.MovieSerializer(movies, many=True).data
+        data = serializers.MovieSerializer(movies, many=True).data
         return Response(data=data, status=status.HTTP_200_OK)
     elif request.method == 'POST':
-        title = request.data.get('title')
-        duration = request.data.get('duration')
-        director_id = request.data.get('director_id')
-        rating = request.data.get('rating')
+        serializer = serializers.MovieValidateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        title = serializer.validated_data.get('title')
+        duration = serializer.validated_data.get('duration')
+        director_id = serializer.validated_data.get('director_id')
+        rating = serializer.validated_data.get('rating')
 
         movies = models.Movie.objects.create(
             title=title,
@@ -57,7 +67,7 @@ def movie_list_create_api_view(request):
             director_id=director_id,
             rating=rating
         )
-        return Response(data=serializer.MovieDetailSerializer(movies).data,
+        return Response(data=serializers.MovieDetailSerializer(movies).data,
                         status=status.HTTP_201_CREATED)
 
 
@@ -68,15 +78,18 @@ def movie_detail_api_view(request, id):
     except models.Movie.DoesNotExist:
         return Response(data={'error': 'Product not found!'}, status=status.HTTP_404_NOT_FOUND)
     if request.method == 'GET':
-        data = serializer.MovieDetailSerializer(movie).data
+        data = serializers.MovieDetailSerializer(movie).data
         return Response(data=data, status=status.HTTP_200_OK)
     elif request.method == 'PUT':
-        movie.title = request.data.get('title')
-        movie.duration = request.data.get('duration')
-        movie.director_id = request.data.get('director_id')
-        movie.rating = request.data.get('rating')
+        serializer = serializers.MovieValidateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        movie.title = serializer.validated_data.get('title')
+        movie.duration = serializer.validated_data.get('duration')
+        movie.director_id = serializer.validated_data.get('director_id')
+        movie.rating = serializer.validated_data.get('rating')
         movie.save()
-        return Response(data=serializer.MovieDetailSerializer(movie).data,
+        return Response(data=serializers.MovieDetailSerializer(movie).data,
                         status=status.HTTP_201_CREATED)
     elif request.method == 'DELETE':
         movie.delete()
@@ -86,19 +99,22 @@ def movie_detail_api_view(request, id):
 def review_list_create_api_view(request):
     if request.method == 'GET':
         review = models.Review.objects.all()
-        data = serializer.ReviewSerializer(review, many=True).data
+        data = serializers.ReviewSerializer(review, many=True).data
         return Response(data=data, status=status.HTTP_200_OK)
     elif request.method == 'POST':
-        text = request.data.get('text')
-        stars = request.data.get('stars')
-        movie_id = request.data.get('movie_id')
+        serializer = serializers.ReviewValidateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        text = serializer.validated_data.get('text')
+        stars = serializer.validated_data.get('stars')
+        movie_id = serializer.validated_data.get('movie_id')
 
         review = models.Review.objects.create(
             stars=stars,
             text=text,
             movie_id=movie_id
         )
-        return Response(data=serializer.ReviewDetailSerializer(review).data,
+        return Response(data=serializers.ReviewDetailSerializer(review).data,
                         status=status.HTTP_201_CREATED)
 
 
@@ -109,14 +125,17 @@ def review_detail_api_view(request, id):
     except models.Review.DoesNotExist:
         return Response(data={'error': 'Product not found!'}, status=status.HTTP_404_NOT_FOUND)
     if request.method == 'GET':
-        data = serializer.ReviewDetailSerializer(review).data
+        data = serializers.ReviewDetailSerializer(review).data
         return Response(data=data, status=status.HTTP_200_OK)
     elif request.method == 'PUT':
-        review.stars = request.data.get('stars')
-        review.text = request.data.get('text')
-        review.movie_id = request.data.get('movie_id')
+        serializer = serializers.ReviewValidateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        review.stars = serializer.validated_data.get('stars')
+        review.text = serializer.validated_data.get('text')
+        review.movie_id = serializer.validated_data.get('movie_id')
         review.save()
-        return Response(data=serializer.ReviewDetailSerializer(review).data,
+        return Response(data=serializers.ReviewDetailSerializer(review).data,
                         status=status.HTTP_201_CREATED)
     elif request.method == 'DELETE':
         review.delete()
@@ -125,5 +144,5 @@ def review_detail_api_view(request, id):
 @api_view(['GET'])
 def movies_review_list_api_view(request):
     movies = models.Movie.objects.all().annotate(average_rating=Avg('reviews__stars'))
-    data = serializer.MovieSerializer(movies, many=True).data
+    data = serializers.MovieSerializer(movies, many=True).data
     return Response(data, status=status.HTTP_200_OK)
