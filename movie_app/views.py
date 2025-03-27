@@ -33,7 +33,7 @@ class DirectorDetailAPIView(RetrieveUpdateDestroyAPIView):
     lookup_field = 'id'
 
     def update(self, request, *args, **kwargs):
-        director = models.Director.objects.get(id=id)
+        director = self.get_object()
         serializer = serializers.DirectorValidateSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -72,7 +72,7 @@ class MovieDetailAPIView(RetrieveUpdateDestroyAPIView):
     lookup_field = 'id'
 
     def update(self, request, *args, **kwargs):
-        movie = models.Movie.objects.get(id=id)
+        movie = self.get_object()
         serializer = serializers.MovieValidateSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -115,7 +115,7 @@ class ReviewDetailAPIView(RetrieveUpdateDestroyAPIView):
 
 
     def update(self, request, *args, **kwargs):
-        review = request.data.objects.get(id=id)
+        review = self.get_object()
         serializer = serializers.ReviewValidateSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
